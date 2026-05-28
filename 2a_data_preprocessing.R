@@ -1,0 +1,271 @@
+
+
+# ============================================================
+# 04_data_preprocessing.R
+# Recoding and cleaning variables for thesis analyses
+# ============================================================
+
+# Load packages -----------------------------------------------------------
+
+library(tidyverse)
+library(haven)
+
+
+# Load constructed dataset ------------------------------------------------
+
+panel_full <- readRDS("panel_full.rds")
+
+
+# Rename variables --------------------------------------------------------
+
+panel_full <- panel_full %>%
+  rename(
+    heart_attack           = ph006d1,
+    high_blood_pressure    = ph006d2,
+    high_blood_cholesterol = ph006d3,
+    stroke                 = ph006d4,
+    diabetes               = ph006d5,
+    chronic_lung_disease   = ph006d6,
+    cancer                 = ph006d10,
+    ulcer                  = ph006d11,
+    parkinson              = ph006d12,
+    cataracts              = ph006d13,
+    hip_fracture           = ph006d14,
+    alzheimers             = ph006d16,
+    other_affective        = ph006d18,
+    rheumatoid_arthritis   = ph006d19,
+    osteoarthritis         = ph006d20,
+    other_chronic          = ph006dot,
+    
+    marital_status         = dn014_,
+    employment_status      = ep005_,
+    educational_level      = isced1997_r,
+    smoke_present          = br002_,
+    alcohol_per_week       = br010_,
+    vig_activity           = br015_,
+    mod_activity           = br016_
+  )
+
+# Remove labels -----------------------------------------------------------
+
+panel_full <- panel_full %>%
+  mutate(across(where(haven::is.labelled), haven::zap_labels))
+
+
+# Define chronic disease variables ---------------------------------------
+
+chronic_disease_vars <- c(
+  "heart_attack",
+  "high_blood_pressure",
+  "high_blood_cholesterol",
+  "stroke",
+  "diabetes",
+  "chronic_lung_disease",
+  "cancer",
+  "ulcer",
+  "parkinson",
+  "cataracts",
+  "hip_fracture",
+  "alzheimers",
+  "other_affective",
+  "rheumatoid_arthritis",
+  "osteoarthritis",
+  "other_chronic"
+)
+
+# Recode variables --------------------------------------------------------
+
+analysis_data <- panel_full %>%
+  mutate(
+    # Chronic disease count
+    chronicw5 = na_if(chronicw5, -1),
+    chronicw5 = na_if(chronicw5, -2),
+    
+    chronic_cat = case_when(
+      chronicw5 == 0 ~ "0",
+      chronicw5 == 1 ~ "1",
+      chronicw5 == 2 ~ "2",
+      chronicw5 == 3 ~ "3",
+      chronicw5 >= 4 ~ "4+",
+      TRUE ~ NA_character_
+    ),
+    
+    # Education
+    educational_level = na_if(educational_level, 97),
+    
+    education_3cat = case_when(
+      educational_level %in% c(0, 1, 2) ~ "low",
+      educational_level %in% c(3, 4)    ~ "mid",
+      educational_level %in% c(5, 6)    ~ "high",
+      TRUE ~ NA_character_
+    ),
+    
+    # Employment
+    employment_status = as.numeric(as.character(employment_status)),
+    employment_status = na_if(employment_status, 97),
+    
+    employment_3cat = case_when(
+      employment_status == 2 ~ "employed",
+      employment_status == 1 ~ "retired",
+      employment_status %in% c(3, 4, 5) ~ "not_working",
+      TRUE ~ NA_character_
+    ),
+    
+    # Marital status
+    marital_3cat = case_when(
+      marital_status %in% c(1, 2, 3) ~ "married",
+      marital_status %in% c(4, 5)    ~ "not_married",
+      marital_status == 6            ~ "widowed",
+      TRUE                           ~ "missing"
+    ),
+    
+    # Smoking
+    smoke_3cat = case_when(
+      smoke_present == 1   ~ "smoking",
+      smoke_present == 5   ~ "non_smoking",
+      is.na(smoke_present) ~ "unknown",
+      TRUE ~ NA_character_
+    ),
+    
+    # Physical activity
+    vig_activity_3cat = case_when(
+      vig_activity == 1        ~ "high",
+      vig_activity == 2        ~ "moderate",
+      vig_activity %in% c(3, 4) ~ "low",
+      TRUE ~ NA_character_
+    ),
+    
+    mod_activity_3cat = case_when(
+      mod_activity == 1        ~ "high",
+      mod_activity == 2        ~ "moderate",
+      mod_activity %in% c(3, 4) ~ "low",
+      TRUE ~ NA_character_
+    ),
+    
+    # Alcohol
+    alcohol_per_week = na_if(alcohol_per_week, -1)
+  ) %>%
+  mutate(
+    across(all_of(chronic_disease_vars), ~ na_if(.x, -1)),
+    across(all_of(chronic_disease_vars), ~ na_if(.x, -2))
+  )
+
+
+# Set factor levels -------------------------------------------------------
+
+analysis_data <- analysis_data %>%
+  mutate(
+    eurodcat_w6 = factor(
+      as.character(eurodcat_w6),
+      levels = c("0", "1"),
+      labels = c("no", "yes")
+    ),
+    
+    gender = factor(gender),
+    
+    education_3cat = factor(
+      education_3cat,
+      levels = c("low", "mid", "high")
+    ),
+    
+    employment_3cat = factor(
+      employment_3cat,
+      levels = c("employed", "retired", "not_working")
+    ),
+    
+    marital_3cat = factor(
+      marital_3cat,
+      levels = c("married", "not_married", "widowed", "missing")
+    ),
+    
+    smoke_3cat = factor(
+      smoke_3cat,
+      levels = c("non_smoking", "smoking", "unknown")
+    ),
+    
+    vig_activity_3cat = factor(
+      vig_activity_3cat,
+      levels = c("low", "moderate", "high")
+    ),
+    
+    mod_activity_3cat = factor(
+      mod_activity_3cat,
+      levels = c("low", "moderate", "high")
+    ),
+    
+    chronic_cat = factor(
+      chronic_cat,
+      levels = c("0", "1", "2", "3", "4+")
+    )
+  )
+
+# Select final analysis variables ----------------------------------------
+
+analysis_data <- analysis_data %>%
+  dplyr::select(
+    mergeid,
+    eurodcat_w6,
+    gender,
+    age2013,
+    marital_3cat,
+    employment_3cat,
+    education_3cat,
+    smoke_3cat,
+    alcohol_per_week,
+    vig_activity_3cat,
+    mod_activity_3cat,
+    all_of(chronic_disease_vars),
+    chronic_cat
+  )
+
+
+# Missingness overview before final exclusion -----------------------------
+
+missing_summary <- analysis_data %>%
+  summarise(across(
+    everything(),
+    ~ sum(is.na(.))
+  )) %>%
+  pivot_longer(
+    everything(),
+    names_to = "variable",
+    values_to = "n_missing"
+  ) %>%
+  arrange(desc(n_missing))
+
+
+print(missing_summary, n = Inf)
+
+
+
+# Remove remaining missing values -----------------------------------------
+
+analysis_data_complete <- analysis_data %>%
+  drop_na(
+    eurodcat_w6,
+    gender,
+    age2013,
+    marital_3cat,
+    employment_3cat,
+    education_3cat,
+    alcohol_per_week,
+    vig_activity_3cat,
+    mod_activity_3cat,
+    all_of(chronic_disease_vars),
+    chronic_cat
+  )
+
+# Final sample size check -------------------------------------------------
+
+nrow(analysis_data)
+nrow(analysis_data_complete)
+
+n_excluded <- nrow(analysis_data) - nrow(analysis_data_complete)
+n_excluded
+
+# Save final analysis dataset ---------------------------------------------
+
+saveRDS(
+  analysis_data_complete,
+  "analysis_data_complete.rds"
+)
