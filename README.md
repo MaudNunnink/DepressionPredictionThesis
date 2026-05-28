@@ -24,15 +24,15 @@
 
 05c_XGBoost_LCA_features|Trains and evaluates a XGBoost model using the LCA classes as predictors
 
-06: Sex-and-Age specific models | 
+06: Sex-and-Age specific models | All subgroup scripts train and evaluate models separately by sex and age group, using the same modelling workflow as the main analyses, including train-test splitting, threshold comparison, ROC/AUC evaluation, and performance metric extraction.
 
-06a_logistic_regression_individual_indicators_sex_age_group | 
+06a_logistic_regression_individual_indicators_sex_age_group | Trains and evaluates sex- and age-specific logistic regression models using individual chronic disease indicators.
 
-06b_logistic_regression_condition_count_sex_age_group |
+06b_logistic_regression_condition_count_sex_age_group | Trains and evaluates sex- and age-specific logistic regression models using chronic condition counts.
 
-06c_XGBoost_individual_indicators_sex_age_group | 
+06c_XGBoost_individual_indicators_sex_age_group | Trains and evaluates sex- and age-specific XGBoost models using individual chronic disease indicators.
 
-06d_XGBoost_condition_count_sex_age_group |
+06d_XGBoost_condition_count_sex_age_group | Trains and evaluates sex- and age-specific XGBoost models using chronic condition counts.
 
 
 
