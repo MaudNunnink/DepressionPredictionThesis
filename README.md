@@ -4,7 +4,7 @@
 
 02b_data_preprocessing.R | Renames and recodes variables for the main analysis, including recategorization, missing value handling, and the creation of the final analytical dataset.
 
-02c_exploratory_data_analysis.R |
+02c_exploratory_data_analysis.R | Exploratory data analysis (EDA) on the final analytical sample, including descriptive statistics, demographic distributions, chronic disease burden analyses, prevalence estimates, and visualizations stratified by age group and sex. Outputs include tables and figures used in the thesis and appendix.
 
 03_latent_class_analysis.R | Performs Latent Class Analysis (LCA) on chronic disease indicators, compares model fit across class solutions, visualises conditional item-response probabilities, and merges LCA-derived features back into the analytical dataset.
 
