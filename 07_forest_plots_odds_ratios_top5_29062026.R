@@ -1,0 +1,225 @@
+
+
+# ============================================================
+# Figure 6. Strongest predictors of depressive symptoms
+# across logistic regression models
+# Selection based on absolute log odds ratios: abs(log(OR))
+# ============================================================
+
+# Packages
+library(tidyverse)
+library(grid)
+
+# ------------------------------------------------------------
+# Data from Appendix E, Tables E1-E3
+# ------------------------------------------------------------
+
+forest_data_all <- tribble(
+  ~model_type, ~domain, ~predictor, ~OR, ~CI_low, ~CI_high,
+  
+  # ----------------------------------------------------------
+  # Table E1: Individual chronic conditions model
+  # ----------------------------------------------------------
+  "Individual conditions model", "Sociodemographic", "Female sex", 1.80, 1.57, 2.06,
+  "Individual conditions model", "Sociodemographic", "Age", 1.00, 0.99, 1.01,
+  "Individual conditions model", "Sociodemographic", "Not married", 0.99, 0.81, 1.22,
+  "Individual conditions model", "Sociodemographic", "Widowed", 0.94, 0.73, 1.20,
+  "Individual conditions model", "Sociodemographic", "Marital status missing", 1.11, 0.94, 1.32,
+  "Individual conditions model", "Sociodemographic", "Retired", 0.91, 0.74, 1.11,
+  "Individual conditions model", "Sociodemographic", "Not working", 1.32, 1.08, 1.61,
+  "Individual conditions model", "Sociodemographic", "Medium education", 0.57, 0.47, 0.69,
+  "Individual conditions model", "Sociodemographic", "High education", 0.43, 0.35, 0.54,
+  
+  "Individual conditions model", "Lifestyle", "Current smoking", 0.87, 0.73, 1.03,
+  "Individual conditions model", "Lifestyle", "Smoking status unknown", 0.87, 0.74, 1.02,
+  "Individual conditions model", "Lifestyle", "Alcohol consumption per week", 1.00, 0.97, 1.03,
+  "Individual conditions model", "Lifestyle", "Moderate vigorous activity", 0.92, 0.76, 1.10,
+  "Individual conditions model", "Lifestyle", "High vigorous activity", 0.99, 0.85, 1.14,
+  "Individual conditions model", "Lifestyle", "Moderate moderate-intensity activity", 0.64, 0.51, 0.82,
+  "Individual conditions model", "Lifestyle", "High moderate-intensity activity", 0.75, 0.61, 0.91,
+  
+  "Individual conditions model", "Chronic disease burden", "Heart attack", 1.35, 1.11, 1.65,
+  "Individual conditions model", "Chronic disease burden", "High blood pressure", 1.14, 1.00, 1.29,
+  "Individual conditions model", "Chronic disease burden", "High blood cholesterol", 1.18, 1.01, 1.37,
+  "Individual conditions model", "Chronic disease burden", "Stroke", 1.44, 1.07, 1.95,
+  "Individual conditions model", "Chronic disease burden", "Diabetes", 0.99, 0.82, 1.20,
+  "Individual conditions model", "Chronic disease burden", "Chronic lung disease", 1.69, 1.35, 2.11,
+  "Individual conditions model", "Chronic disease burden", "Cancer", 1.53, 1.24, 1.87,
+  "Individual conditions model", "Chronic disease burden", "Ulcer", 1.93, 1.41, 2.65,
+  "Individual conditions model", "Chronic disease burden", "Parkinson's disease", 2.45, 1.20, 5.35,
+  "Individual conditions model", "Chronic disease burden", "Cataracts", 1.07, 0.86, 1.32,
+  "Individual conditions model", "Chronic disease burden", "Hip fracture", 0.83, 0.50, 1.35,
+  "Individual conditions model", "Chronic disease burden", "Alzheimer's disease", 3.49, 1.52, 9.05,
+  "Individual conditions model", "Chronic disease burden", "Other affective disorder", 3.18, 2.55, 4.00,
+  "Individual conditions model", "Chronic disease burden", "Rheumatoid arthritis", 1.99, 1.64, 2.41,
+  "Individual conditions model", "Chronic disease burden", "Osteoarthritis", 1.30, 1.11, 1.51,
+  "Individual conditions model", "Chronic disease burden", "Other chronic condition", 1.48, 1.26, 1.73,
+  
+  # ----------------------------------------------------------
+  # Table E2: Chronic condition count model
+  # ----------------------------------------------------------
+  "Condition count model", "Sociodemographic", "Female sex", 1.94, 1.70, 2.21,
+  "Condition count model", "Sociodemographic", "Age", 1.00, 0.99, 1.01,
+  "Condition count model", "Sociodemographic", "Not married", 1.05, 0.86, 1.28,
+  "Condition count model", "Sociodemographic", "Widowed", 0.90, 0.70, 1.14,
+  "Condition count model", "Sociodemographic", "Marital status missing", 1.15, 0.97, 1.37,
+  "Condition count model", "Sociodemographic", "Retired", 0.90, 0.74, 1.10,
+  "Condition count model", "Sociodemographic", "Not working", 1.41, 1.16, 1.71,
+  "Condition count model", "Sociodemographic", "Medium education", 0.59, 0.48, 0.71,
+  "Condition count model", "Sociodemographic", "High education", 0.45, 0.36, 0.55,
+  
+  "Condition count model", "Lifestyle", "Current smoking", 0.90, 0.76, 1.07,
+  "Condition count model", "Lifestyle", "Smoking status unknown", 0.89, 0.76, 1.04,
+  "Condition count model", "Lifestyle", "Alcohol consumption per week", 1.01, 0.98, 1.04,
+  "Condition count model", "Lifestyle", "Moderate vigorous activity", 0.93, 0.77, 1.11,
+  "Condition count model", "Lifestyle", "High vigorous activity", 1.02, 0.89, 1.18,
+  "Condition count model", "Lifestyle", "Moderate moderate-intensity activity", 0.59, 0.47, 0.75,
+  "Condition count model", "Lifestyle", "High moderate-intensity activity", 0.70, 0.58, 0.85,
+  
+  "Condition count model", "Chronic disease burden", "1 chronic condition", 1.48, 1.22, 1.80,
+  "Condition count model", "Chronic disease burden", "2 chronic conditions", 2.28, 1.87, 2.79,
+  "Condition count model", "Chronic disease burden", "3 chronic conditions", 2.90, 2.33, 3.62,
+  "Condition count model", "Chronic disease burden", "4+ chronic conditions", 4.77, 3.81, 5.97,
+  
+  # ----------------------------------------------------------
+  # Table E3: LCA-derived features model
+  # ----------------------------------------------------------
+  "LCA-derived features model", "Sociodemographic", "Female sex", 1.78, 1.47, 2.17,
+  "LCA-derived features model", "Sociodemographic", "Age", 1.00, 0.98, 1.01,
+  "LCA-derived features model", "Sociodemographic", "Not married", 1.15, 0.86, 1.53,
+  "LCA-derived features model", "Sociodemographic", "Widowed", 0.97, 0.69, 1.37,
+  "LCA-derived features model", "Sociodemographic", "Marital status missing", 1.12, 0.88, 1.44,
+  "LCA-derived features model", "Sociodemographic", "Retired", 1.04, 0.78, 1.38,
+  "LCA-derived features model", "Sociodemographic", "Not working", 1.59, 1.21, 2.08,
+  "LCA-derived features model", "Sociodemographic", "Medium education", 0.58, 0.45, 0.75,
+  "LCA-derived features model", "Sociodemographic", "High education", 0.43, 0.32, 0.58,
+  
+  "LCA-derived features model", "Lifestyle", "Current smoking", 0.92, 0.72, 1.18,
+  "LCA-derived features model", "Lifestyle", "Smoking status unknown", 0.92, 0.74, 1.15,
+  "LCA-derived features model", "Lifestyle", "Alcohol consumption per week", 1.01, 0.97, 1.06,
+  "LCA-derived features model", "Lifestyle", "Moderate vigorous activity", 0.90, 0.69, 1.17,
+  "LCA-derived features model", "Lifestyle", "High vigorous activity", 0.98, 0.80, 1.21,
+  "LCA-derived features model", "Lifestyle", "Moderate moderate-intensity activity", 0.61, 0.44, 0.86,
+  "LCA-derived features model", "Lifestyle", "High moderate-intensity activity", 0.72, 0.55, 0.94,
+  
+  "LCA-derived features model", "Chronic disease burden", "Cardiometabolic", 2.22, 1.77, 2.78,
+  "LCA-derived features model", "Chronic disease burden", "Musculoskeletal-inflammatory", 3.61, 2.54, 5.14
+)
+
+# ------------------------------------------------------------
+# Select the five strongest associations per model
+# Strength is defined as distance from OR = 1 on the log scale.
+# ------------------------------------------------------------
+
+top5_data <- forest_data_all %>%
+  mutate(
+    model_type = factor(
+      model_type,
+      levels = c(
+        "Individual conditions model",
+        "Condition count model",
+        "LCA-derived features model"
+      )
+    ),
+    association_strength = abs(log(OR))
+  ) %>%
+  group_by(model_type) %>%
+  slice_max(
+    order_by = association_strength,
+    n = 5,
+    with_ties = FALSE
+  ) %>%
+  arrange(model_type, association_strength) %>%
+  mutate(
+    predictor_label = str_wrap(predictor, width = 35),
+    predictor_facet = paste(model_type, predictor_label, sep = "___")
+  ) %>%
+  ungroup()
+
+# Make predictor labels unique within facets and order them by strength
+top5_data <- top5_data %>%
+  mutate(
+    predictor_facet = factor(
+      predictor_facet,
+      levels = unique(predictor_facet)
+    )
+  )
+
+# ------------------------------------------------------------
+# Create forest plot
+# ------------------------------------------------------------
+
+figure_6 <- ggplot(top5_data, aes(x = OR, y = predictor_facet)) +
+  geom_vline(
+    xintercept = 1,
+    linetype = "dashed",
+    linewidth = 0.4
+  ) +
+  geom_segment(
+    aes(
+      x = CI_low,
+      xend = CI_high,
+      y = predictor_facet,
+      yend = predictor_facet
+    ),
+    linewidth = 0.6
+  ) +
+  geom_point(size = 2.2) +
+  facet_grid(
+    model_type ~ .,
+    scales = "free_y",
+    space = "free_y"
+  ) +
+  scale_y_discrete(
+    labels = function(x) str_remove(x, "^.*___")
+  ) +
+  scale_x_log10(
+    breaks = c(0.3, 0.5, 1, 2, 3, 5, 10),
+    limits = c(0.3, 10),
+    labels = c("0.3", "0.5", "1", "2", "3", "5", "10")
+  ) +
+  labs(
+    x = "Odds ratio (log scale)",
+    y = NULL
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    strip.text.y = element_text(
+      face = "bold",
+      size = 11,
+      angle = 0
+    ),
+    strip.placement = "outside",
+    panel.grid.minor = element_blank(),
+    panel.grid.major.y = element_blank(),
+    axis.text.y = element_text(
+      size = 10,
+      lineheight = 0.9
+    ),
+    axis.text.x = element_text(size = 10),
+    axis.title.x = element_text(size = 11),
+    panel.spacing.y = unit(0.9, "lines"),
+    plot.margin = margin(10, 20, 10, 10)
+  )
+
+# Show plot
+figure_6
+
+# ------------------------------------------------------------
+# Save plot
+# ------------------------------------------------------------
+
+ggsave(
+  filename = "Figure_6_top5_predictors_forest_plot.png",
+  plot = figure_6,
+  width = 8.5,
+  height = 7.2,
+  dpi = 300
+)
+
+ggsave(
+  filename = "Figure_6_top5_predictors_forest_plot.pdf",
+  plot = figure_6,
+  width = 8.5,
+  height = 7.2
+)
